@@ -24,6 +24,7 @@ SUBDIRS = wok nginx
 EXTRA_DIST = wokd.in \
 	wok.conf.in \
 	firewalld.xml \
+	wok-firewalld.sh \
 	$(NULL)
 
 bin_SCRIPTS = wokd
