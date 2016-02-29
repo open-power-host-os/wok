@@ -73,11 +73,18 @@ install -Dm 0755 contrib/wokd-upstart.conf.fedora %{buildroot}/etc/init/wokd.con
 install -Dm 0755 contrib/wokd.sysvinit %{buildroot}%{_initrddir}/wokd
 %endif
 
+# Install script to help open port in firewalld
+install -Dm 0744 src/wok-firewalld.sh %{buildroot}%{_datadir}/wok/utils/wok-firewalld.sh
+
+
 %post
 if [ $1 -eq 1 ] ; then
     /bin/systemctl enable wokd.service >/dev/null 2>&1 || :
     # Initial installation
     /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+
+    # Add wokd as default service into public chain of firewalld
+    %{_datadir}/wok/utils/wok-firewalld.sh public add wokd
 fi
 
 
@@ -87,6 +94,10 @@ if [ $1 -eq 0 ] ; then
     # Package removal, not upgrade
     /bin/systemctl --no-reload disable wokd.service > /dev/null 2>&1 || :
     /bin/systemctl stop wokd.service > /dev/null 2>&1 || :
+
+    # Remove wokd service from public chain of firewalld
+    %{_datadir}/wok/utils/wok-firewalld.sh public del wokd
+    firewall-cmd --reload >/dev/null 2>&1 || :
 fi
 
 exit 0
