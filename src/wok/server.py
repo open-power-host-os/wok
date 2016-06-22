@@ -45,6 +45,16 @@ LOGGING_LEVEL = {"debug": logging.DEBUG,
                  "warning": logging.WARNING,
                  "error": logging.ERROR,
                  "critical": logging.CRITICAL}
+LOGROTATE_TEMPLATE = """
+${log_dir}/*log {
+    daily
+    nomail
+    maxsize ${log_size}
+    rotate 10
+    nomissingok
+    compress
+}
+"""
 
 
 def set_no_cache():
@@ -141,13 +151,11 @@ class Server(object):
         if paths.installed:
 
             # redefine logrotate configuration according to wok.conf
-            logrotate_file = os.path.join(paths.logrotate_dir, "wokd.in")
-            with open(logrotate_file) as template:
-                data = template.read()
-
-            data = Template(data)
+            data = Template(LOGROTATE_TEMPLATE)
             data = data.safe_substitute(log_dir=configParser.get("logging",
-                                        "log_dir"))
+                                        "log_dir"),
+                                        log_size=configParser.get("logging",
+                                        "log_size"))
 
             # Write file to be used for nginx.
             config_file = open(os.path.join(paths.logrotate_dir, "wokd"), "w")
