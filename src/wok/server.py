@@ -33,7 +33,7 @@ from wok.config import config as configParser
 from wok.config import paths, PluginConfig, WokConfig
 from wok.control import sub_nodes
 from wok.model import model
-from wok.proxy import start_proxy, terminate_proxy
+from wok.proxy import start_proxy
 from wok.reqlogger import RequestLogger
 from wok.root import WokRoot
 from wok.safewatchedfilehandler import SafeWatchedFileHandler
@@ -179,11 +179,8 @@ class Server(object):
 
         self.app = cherrypy.tree.mount(WokRoot(model_instance, dev_env),
                                        config=self.configObj)
+
         self._load_plugins(options)
-
-        # Terminate proxy when cherrypy server is terminated
-        cherrypy.engine.subscribe('exit', terminate_proxy)
-
         cherrypy.lib.sessions.init()
 
     def _load_plugins(self, options):
@@ -201,7 +198,7 @@ class Server(object):
 
             try:
                 plugin_app = import_class(plugin_class)(options)
-            except ImportError, e:
+            except (ImportError, Exception), e:
                 cherrypy.log.error_log.error(
                     "Failed to import plugin %s, "
                     "error: %s" % (plugin_class, e.message)
