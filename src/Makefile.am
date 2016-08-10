@@ -25,6 +25,7 @@ EXTRA_DIST = wokd.in \
 	wok.conf.in \
 	firewalld.xml \
 	wok-firewalld.sh \
+	selinux/wokd.te \
 	$(NULL)
 
 bin_SCRIPTS = wokd

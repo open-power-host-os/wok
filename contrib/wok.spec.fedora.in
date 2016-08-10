@@ -20,10 +20,22 @@ Requires:	python-psutil >= 0.6.0
 Requires:	fontawesome-fonts
 Requires:	open-sans-fonts
 Requires:	logrotate
+Requires:	policycoreutils
+Requires:	policycoreutils-python
+
+Requires(post): policycoreutils
+Requires(post): policycoreutils-python
+Requires(post): selinux-policy-targeted
+Requires(postun): policycoreutils
+Requires(postun): policycoreutils-python
+Requires(postun): selinux-policy-targeted
+
 BuildRequires:	gettext-devel
 BuildRequires:	libxslt
 BuildRequires:	openssl
 BuildRequires:	python-lxml
+BuildRequires:	selinux-policy-devel
+BuildRequires:	policycoreutils-devel
 
 %if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
 %global with_systemd 1
@@ -58,6 +70,8 @@ Wok is Webserver Originated from Kimchi.
 %build
 %configure
 make
+cd src/selinux
+make -f /usr/share/selinux/devel/Makefile
 
 
 %install
@@ -76,6 +90,8 @@ install -Dm 0755 contrib/wokd.sysvinit %{buildroot}%{_initrddir}/wokd
 # Install script to help open port in firewalld
 install -Dm 0744 src/wok-firewalld.sh %{buildroot}%{_datadir}/wok/utils/wok-firewalld.sh
 
+# Install SELinux policy
+install -Dm 0744 src/selinux/wokd.pp %{buildroot}%{_datadir}/wok/selinux/wokd.pp
 
 %post
 if [ $1 -eq 1 ] ; then
@@ -86,7 +102,8 @@ if [ $1 -eq 1 ] ; then
     # Add wokd as default service into public chain of firewalld
     %{_datadir}/wok/utils/wok-firewalld.sh public add wokd
 fi
-
+# Install SELinux policy
+semodule -i %{_datadir}/wok/selinux/wokd.pp
 
 %preun
 
@@ -106,6 +123,10 @@ exit 0
 %postun
 if [ "$1" -ge 1 ] ; then
     /bin/systemctl try-restart wokd.service >/dev/null 2>&1 || :
+fi
+if [ $1 -eq 0 ]; then
+    # Remove the SELinux policy, only when uninstall the package
+    semodule -r wokd
 fi
 exit 0
 
@@ -147,6 +168,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Thu Aug  4 2016 Paulo Vital <pvital@linux.vnet.ibm.com> 2.3
+- Add SELinux policy to allow http context
+
 * Fri Jun 19 2015 Lucio Correia <luciojhc@linux.vnet.ibm.com> 2.0
 - Rename to wokd
 - Remove kimchi specifics
