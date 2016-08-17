@@ -32,7 +32,6 @@ from wok.control import sub_nodes
 from wok.control.base import Resource
 from wok.control.utils import parse_request
 from wok.exception import MissingParameter
-from wok.message import WokMessage
 from wok.reqlogger import RequestRecord
 
 
@@ -154,6 +153,7 @@ class WokRoot(Root):
 
     @cherrypy.expose
     def login(self, *args):
+        details = None
         method = 'POST'
         code = self.getRequestMessage(method, 'login')
         app = 'wok'
@@ -161,20 +161,22 @@ class WokRoot(Root):
 
         try:
             params = parse_request()
-            msg = WokMessage(code, params).get_text(prepend_code=False)
             username = params['username']
             password = params['password']
         except KeyError, item:
+            details = e = MissingParameter('WOKAUTH0003E', {'item': str(item)})
+
             RequestRecord(
-                msg,
+                params,
+                details,
                 app=app,
+                msgCode=code,
                 req=method,
                 status=400,
                 user='N/A',
                 ip=ip
             ).log()
 
-            e = MissingParameter('WOKAUTH0003E', {'item': str(item)})
             raise cherrypy.HTTPError(400, e.message)
 
         try:
@@ -185,8 +187,10 @@ class WokRoot(Root):
             raise
         finally:
             RequestRecord(
-                msg,
+                params,
+                details,
                 app=app,
+                msgCode=code,
                 req=method,
                 status=status,
                 user='N/A',
@@ -200,14 +204,15 @@ class WokRoot(Root):
         method = 'POST'
         code = self.getRequestMessage(method, 'logout')
         params = {'username': cherrypy.session.get(auth.USER_NAME, 'N/A')}
-        msg = WokMessage(code, params).get_text(prepend_code=False)
         ip = cherrypy.request.remote.ip
 
         auth.logout()
 
         RequestRecord(
-            msg,
+            params,
+            None,
             app='wok',
+            msgCode=code,
             req=method,
             status=200,
             user=params['username'],

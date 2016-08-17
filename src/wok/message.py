@@ -22,6 +22,7 @@
 import cherrypy
 import gettext
 
+from wok.stringutils import decode_value
 from wok.template import get_lang, validate_language
 
 
@@ -36,7 +37,7 @@ class WokMessage(object):
 
             try:
                 # In case the value formats itself to an ascii string.
-                args[key] = unicode(str(value), 'utf-8')
+                args[key] = decode_value(value)
             except UnicodeEncodeError:
                 # In case the value is a WokException or it formats
                 # itself to a unicode string.
@@ -46,7 +47,7 @@ class WokMessage(object):
         self.args = args
         self.plugin = plugin
 
-    def _get_translation(self):
+    def _get_text(self, translate):
         wok_app = cherrypy.tree.apps.get('', None)
 
         # get app from plugin path if specified
@@ -68,21 +69,24 @@ class WokMessage(object):
             app = wok_app
             text = app.root.messages.get(self.code, self.code)
 
-        # do translation
-        domain = app.root.domain
-        paths = app.root.paths
-        lang = validate_language(get_lang())
+        if translate:
+            # do translation
+            domain = app.root.domain
+            paths = app.root.paths
+            lang = validate_language(get_lang())
 
-        try:
-            translation = gettext.translation(domain, paths.mo_dir, [lang])
-        except:
-            translation = gettext
+            try:
+                translation = gettext.translation(domain, paths.mo_dir, [lang])
+            except:
+                translation = gettext
 
-        return translation.gettext(text)
+            return translation.gettext(text)
 
-    def get_text(self, prepend_code=True):
-        msg = self._get_translation()
-        msg = unicode(msg, 'utf-8') % self.args
+        return gettext.gettext(text)
+
+    def get_text(self, prepend_code=True, translate=True):
+        msg = self._get_text(translate)
+        msg = decode_value(msg) % self.args
 
         if prepend_code:
             return "%s: %s" % (self.code, msg)
