@@ -31,7 +31,6 @@ from wok.control.utils import get_class_name, internal_redirect, model_fn
 from wok.control.utils import parse_request, validate_method
 from wok.control.utils import validate_params
 from wok.exception import InvalidOperation, UnauthorizedError, WokException
-from wok.message import WokMessage
 from wok.reqlogger import RequestRecord
 from wok.stringutils import encode_value, utf8_dict
 from wok.utils import get_plugin_from_request, wok_log
@@ -120,6 +119,7 @@ class Resource(object):
         def wrapper(*args, **kwargs):
             # status must be always set in order to request be logged.
             # use 500 as fallback for "exception not handled" cases.
+            details = None
             status = 500
 
             method = 'POST'
@@ -150,16 +150,18 @@ class Resource(object):
                     status = cherrypy.response.status
                     return result
             except WokException, e:
+                details = e
                 status = e.getHttpStatusCode()
                 raise cherrypy.HTTPError(status, e.message)
             finally:
                 # log request
                 code = self.getRequestMessage(method, action_name)
                 reqParams = utf8_dict(self.log_args, request)
-                msg = WokMessage(code, reqParams).get_text(prepend_code=False)
                 RequestRecord(
-                    msg,
+                    reqParams,
+                    details,
                     app=get_plugin_from_request(),
+                    msgCode=code,
                     req=method,
                     status=status,
                     user=cherrypy.session.get(USER_NAME, 'N/A'),
@@ -191,6 +193,7 @@ class Resource(object):
     def index(self, *args, **kargs):
         # status must be always set in order to request be logged.
         # use 500 as fallback for "exception not handled" cases.
+        details = None
         status = 500
 
         method = validate_method(('GET', 'DELETE', 'PUT'),
@@ -207,6 +210,7 @@ class Resource(object):
 
             status = cherrypy.response.status
         except WokException, e:
+            details = e
             status = e.getHttpStatusCode()
             raise cherrypy.HTTPError(status, e.message)
         except cherrypy.HTTPError, e:
@@ -216,10 +220,11 @@ class Resource(object):
             # log request
             if method not in LOG_DISABLED_METHODS:
                 code = self.getRequestMessage(method)
-                msg = WokMessage(code, self.log_args)
                 RequestRecord(
-                    msg.get_text(prepend_code=False),
+                    self.log_args,
+                    details,
                     app=get_plugin_from_request(),
+                    msgCode=code,
                     req=method,
                     status=status,
                     user=cherrypy.session.get(USER_NAME, 'N/A'),
@@ -428,6 +433,7 @@ class Collection(object):
     def index(self, *args, **kwargs):
         # status must be always set in order to request be logged.
         # use 500 as fallback for "exception not handled" cases.
+        details = None
         status = 500
 
         params = {}
@@ -445,6 +451,7 @@ class Collection(object):
                 status = cherrypy.response.status
                 return result
         except WokException, e:
+            details = e
             status = e.getHttpStatusCode()
             raise cherrypy.HTTPError(status, e.message)
         except cherrypy.HTTPError, e:
@@ -455,10 +462,11 @@ class Collection(object):
                 # log request
                 code = self.getRequestMessage(method)
                 reqParams = utf8_dict(self.log_args, params)
-                msg = WokMessage(code, reqParams).get_text(prepend_code=False)
                 RequestRecord(
-                    msg,
+                    reqParams,
+                    details,
                     app=get_plugin_from_request(),
+                    msgCode=code,
                     req=method,
                     status=status,
                     user=cherrypy.session.get(USER_NAME, 'N/A'),
