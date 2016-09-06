@@ -34,7 +34,9 @@ messages = {
     "WOKAPI0009E": _("You don't have permission to perform this operation."),
 
     "WOKASYNC0001E": _("Unable to find task id: %(id)s"),
+    "WOKASYNC0002E": _("There is no callback to execute the kill task process."),
     "WOKASYNC0003E": _("Timeout of %(seconds)s seconds expired while running task '%(task)s."),
+    "WOKASYNC0004E": _("Unable to kill task due error: %(err)s"),
 
     "WOKAUTH0001E": _("Authentication failed for user '%(username)s'. [Error code: %(code)s]"),
     "WOKAUTH0002E": _("You are not authorized to access Kimchi"),
@@ -57,6 +59,8 @@ messages = {
     "WOKPROXY0001E": _("Unable to (re)start system's nginx.service. Details: '%(error)s'"),
 
     # These messages (ending with L) are for user log purposes
+    "WOKASYNC0001L": _("Successfully completed task '%(target_uri)s'"),
+    "WOKASYNC0002L": _("Failed to complete task '%(target_uri)s'"),
     "WOKCOL0001L": _("Request made on collection"),
     "WOKRES0001L": _("Request made on resource"),
     "WOKROOT0001L": _("User '%(username)s' login"),
