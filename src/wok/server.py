@@ -25,12 +25,10 @@ import logging
 import logging.handlers
 import os
 
-from string import Template
-
 from wok import auth
 from wok import config
 from wok.config import config as configParser
-from wok.config import paths, PluginConfig, WokConfig
+from wok.config import PluginConfig, WokConfig
 from wok.control import sub_nodes
 from wok.model import model
 from wok.proxy import start_proxy
@@ -45,16 +43,6 @@ LOGGING_LEVEL = {"debug": logging.DEBUG,
                  "warning": logging.WARNING,
                  "error": logging.ERROR,
                  "critical": logging.CRITICAL}
-LOGROTATE_TEMPLATE = """
-${log_dir}/*log {
-    daily
-    nomail
-    maxsize ${log_size}
-    rotate 10
-    nomissingok
-    compress
-}
-"""
 
 
 def set_no_cache():
@@ -147,21 +135,6 @@ class Server(object):
         # start request logger
         self.reqLogger = RequestLogger()
 
-        # only add logrotate if wok is installed
-        if paths.installed:
-
-            # redefine logrotate configuration according to wok.conf
-            data = Template(LOGROTATE_TEMPLATE)
-            data = data.safe_substitute(
-                log_dir=configParser.get("logging", "log_dir"),
-                log_size=configParser.get("logging", "log_size")
-            )
-
-            # Write file to be used for nginx.
-            config_file = open(os.path.join(paths.logrotate_dir, "wokd"), "w")
-            config_file.write(data)
-            config_file.close()
-
         # Handling running mode
         if not dev_env:
             cherrypy.config.update({'environment': 'production'})
@@ -178,7 +151,7 @@ class Server(object):
                 cfg[ident] = {'tools.wokauth.on': True}
 
         self.app = cherrypy.tree.mount(WokRoot(model_instance, dev_env),
-                                       config=self.configObj)
+                                       options.server_root, self.configObj)
 
         self._load_plugins(options)
         cherrypy.lib.sessions.init()
@@ -189,9 +162,7 @@ class Server(object):
                 plugin_class = ('plugins.%s.%s' %
                                 (plugin_name,
                                  plugin_name[0].upper() + plugin_name[1:]))
-                script_name = plugin_config['wok']['uri']
                 del plugin_config['wok']
-
                 plugin_config.update(PluginConfig(plugin_name))
             except KeyError:
                 continue
@@ -229,7 +200,9 @@ class Server(object):
                     "error: %s" % (plugin_class, e.message)
                 )
 
-            cherrypy.tree.mount(plugin_app, script_name, plugin_config)
+            cherrypy.tree.mount(plugin_app,
+                                config.get_base_plugin_uri(plugin_name),
+                                plugin_config)
 
     def start(self):
         # Subscribe to SignalHandler plugin

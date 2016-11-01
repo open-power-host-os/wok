@@ -20,6 +20,7 @@
 
 wok.NOTIFICATION_INTERVAL = 2000
 wok.tabMode = {};
+wok.pluginsColor = {};
 
 wok.config = undefined;
 wok.getConfig(function(result) {
@@ -51,6 +52,8 @@ wok.main = function() {
                         '</a>',
                         '<input name="funcTab" class="sr-only" value="' + functionality.toLowerCase() + '" type="hidden"/>',
                         '<input name="helpPath" class="sr-only" value="' + helpPath + '" type="hidden"/>',
+                        '<input name="colorTab1" class="sr-only" value="' + tab['colorTab1'] + '" type="hidden"/>',
+                        '<input name="colorTab2" class="sr-only" value="' + tab['colorTab2'] + '" type="hidden"/>',
                     '</li>'
                 );
 
@@ -79,27 +82,33 @@ wok.main = function() {
         return functionalTabHtml.join('');
     };
 
-    var parseTabs = function(xmlData) {
+    var parseTabs = function(plugin, xmlData) {
         var tabs = [];
-        var functionality = $(xmlData).find('functionality').text();
+        var funcNode = $(xmlData).find('functionality');
+        var functionality = funcNode.text();
+        var colorTab1 = funcNode.attr('colorTab1');
+        var colorTab2 = funcNode.attr('colorTab2');
+        wok.pluginsColor[plugin] = colorTab2;
         $(xmlData).find('tab').each(function() {
-            var $tab = $(this);
-            var titleKey = $tab.find('title').text();
+            var tab = $(this);
+            var titleKey = tab.find('title').text();
             var title = i18n[titleKey] ? i18n[titleKey] : titleKey;
-            var path = $tab.find('path').text();
+            var path = tab.find('path').text();
             var roles = wok.cookie.get('roles');
-            var order = $tab.find('order').text();
+            var order = tab.find('order').text();
 
             if (roles) {
                 var role = JSON.parse(roles)[titleKey.toLowerCase()];
-                var mode = $tab.find('[role="' + role + '"]').attr('mode');
+                var mode = tab.find('[role="' + role + '"]').attr('mode');
                 wok.tabMode[titleKey.toLowerCase()] = mode;
                 tabs.push({
                     functionality: functionality,
                     title: title,
                     path: path,
                     mode: mode,
-                    order: order
+                    order: order,
+                    colorTab1: colorTab1,
+                    colorTab2: colorTab2
                 });
             } else {
                 document.location.href = 'login.html';
@@ -109,13 +118,14 @@ wok.main = function() {
         return tabs;
     };
 
-    var retrieveTabs = function(url) {
+    var retrieveTabs = function(plugin, url) {
         var tabs = [];
         $.ajax({
             url : url,
             async : false,
+            context: plugin,
             success : function(xmlData) {
-                tabs = parseTabs(xmlData);
+                tabs = parseTabs(this, xmlData);
             },
             statusCode : {
                 404: function() {
@@ -131,7 +141,7 @@ wok.main = function() {
     var pluginI18nUrl = 'plugins/{plugin}/i18n.json';
     var DEFAULT_HASH;
     var buildTabs = function(callback) {
-        var tabs = retrieveTabs(wokConfigUrl);
+        var tabs = retrieveTabs('wok', wokConfigUrl);
         wok.listPlugins(function(plugins) {
             $(plugins).each(function(i, p) {
                 var url = wok.substitute(pluginConfigUrl, {
@@ -143,7 +153,7 @@ wok.main = function() {
                 wok.getI18n(function(i18nObj){ $.extend(i18n, i18nObj)},
                             function(i18nObj){ //i18n is not define by plugin
                             }, i18nUrl, true);
-                var pluginTabs = retrieveTabs(url);
+                var pluginTabs = retrieveTabs(p, url);
                 if(pluginTabs.length > 0){
                     tabs.push.apply(tabs, pluginTabs);
                 }
@@ -208,12 +218,14 @@ wok.main = function() {
             $('#main').html('No plugins installed currently.You can download the available plugins <a href="https://github.com/kimchi-project/kimchi">Kimchi</a> and <a href="https://github.com/kimchi-project/ginger">Ginger</a> from Github').addClass('noPluginMessage');
         } else {
             var plugin = $(tab).parent().find("input[name='funcTab']").val();
+            var colorTab1 = $(tab).parent().find("input[name='colorTab1']").val();
+            var colorTab2 = $(tab).parent().find("input[name='colorTab2']").val();
+            var toolbar = $('#toolbar').closest('.navbar-default.toolbar');
+            $('#toolbar ul.tools').html('');
 
-            $('#tabPanel').removeClass(function(i, css) {
-                return (css.match(/\S+Tab/g) || []).join(' ');
-            });
-            $('#tabPanel').addClass(plugin + 'Tab');
+            $('#tabPanel').css('background-color', colorTab1);
             $('#tabPanel ul li').removeClass('active');
+            $('#tabPanel ul li a').removeAttr('style');
             $.each($('#tabPanel li'), function(i, t) {
                 if ($(t).hasClass(plugin + 'Tab')) {
                     $(t).css('display', 'block');
@@ -223,10 +235,13 @@ wok.main = function() {
             });
 
             $(tab).parent().addClass('active');
-            $(tab).addClass(plugin + 'Selected').focus();
+            $(tab).css('background-color', colorTab2).focus();
+            $(toolbar).css('background-color', colorTab2);
 
             $('#functionalTabPanel ul li').removeClass('active');
+            $('#functionalTabPanel ul li').removeAttr('style');
             $('#functionalTabPanel ul .' + plugin + 'Tab').parent().addClass('active').focus();
+            $('#functionalTabPanel ul .' + plugin + 'Tab').parent().css('background-color', colorTab1);
 
             // Disable Help button according to selected tab
             if ($(tab).hasClass("disableHelp")) {
@@ -343,7 +358,6 @@ wok.main = function() {
 
             var firstTab = $('#tabPanel ul.navbar-nav li.' + plugin + 'Tab').first();
             $(firstTab).addClass('active');
-            $('a.item', firstTab).addClass(plugin + 'Selected');
 
             var href = $('a.item', firstTab).attr('href');
             location.hash = href.substring(0,href.lastIndexOf('.'));

@@ -57,39 +57,6 @@
     }
 }
 
-@each $page,
-$bgcolor in $colors {
-    ##{$page}-root-container .navbar-default.toolbar {
-        @if $page=='guests' or $page=='templates' or $page=='storage' or $page=='network' {
-            background-color: map-get($colors, guests) !important;
-        }
-        @else if $page=='host' {
-            background-color: map-get($colors, host) !important;
-        }
-        @else if $page=='wok' {
-            background-color: map-get($colors, wok) !important;
-        }
-    }
-}
-
-@each $tab,
-$bgcolor in $colors {
-    #tabPanel.#{$tab} {
-        background-color: map-get($colors, $tab) !important;
-    }
-}
-
-
-
-@media (min-width: $screen-sm-max) and (max-width: $screen-md-min) {
-
-    .host-dashboard .container {
-        padding-right: 10px;
-        padding-left:  10px;
-    }
-
-}
-
 @media (min-width: $screen-md-max) and (max-width: $screen-lg) {
 
     .navbar-default.toolbar .navbar-right.tools > li > a {

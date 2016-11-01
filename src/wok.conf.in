@@ -43,15 +43,22 @@
 # Max request body size in KB, default value is 4GB
 #max_body_size = 4 * 1024 * 1024
 
+# Wok server root. Set the following variable to configure any relative path to
+# the server. For example, to have Wok pointing to https://localhost:8001/wok/
+# uncomment the following:
+#server_root=/wok
+
 [logging]
 # Log directory
+
+# Be aware that editting logging directory, you must change logrotate
+# configuration file to keep logs being compressed.
+# Look /etc/logrotate.d/wokd
+
 #log_dir = @localstatedir@/log/wok
 
 # Logging level: debug, info, warning, error or critical
 #log_level = debug
-
-# Log file size (specify size in K, M or G)
-#log_size = 10M
 
 [authentication]
 # Authentication method, available option: pam, ldap.

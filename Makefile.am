@@ -68,7 +68,10 @@ check-local:
 			&& echo "ERROR: Whitespaces found" || echo "Ok";     	\
 		echo "Check IBM license header and copyright date ..." ;    \
 		/bin/bash check-IBM-license-header.sh ;						\
-	fi
+		fi;
+		@if [ -f $(RPMLINT) ]; then 								\
+			./check_spec_errors.sh; 								\
+		fi;
 
 # Link built mo files in the source tree to enable use of translations from
 # within the source tree
@@ -155,7 +158,7 @@ install-data-local:
 	$(INSTALL_DATA) src/dhparams.pem $(DESTDIR)/etc/wok/dhparams.pem
 	touch $(DESTDIR)/etc/nginx/conf.d/wok.conf
 	mkdir -p $(DESTDIR)/etc/logrotate.d/
-	touch $(DESTDIR)/etc/logrotate.d/wokd
+	$(INSTALL_DATA) $(top_srcdir)/src/wok.logrotate $(DESTDIR)/etc/logrotate.d/wokd
 
 uninstall-local:
 	@if test -f $(systemdsystemunitdir)/wokd.service; then \

@@ -316,85 +316,6 @@ html.in-progress .disabled {
   margin-right: 15px;
 }
 
-#host-root-container .navbar-default.toolbar {
-  background-color: #008abf !important;
-}
-
-#guests-root-container .navbar-default.toolbar {
-  background-color: #8cc63f !important;
-}
-
-#templates-root-container .navbar-default.toolbar {
-  background-color: #8cc63f !important;
-}
-
-#storage-root-container .navbar-default.toolbar {
-  background-color: #8cc63f !important;
-}
-
-#network-root-container .navbar-default.toolbar {
-  background-color: #8cc63f !important;
-}
-
-#wok-root-container .navbar-default.toolbar {
-  background-color: #d9182d !important;
-}
-
-#tabPanel.hostSelected {
-  background-color: #008abf !important;
-}
-
-#tabPanel.host {
-  background-color: #008abf !important;
-}
-
-#tabPanel.guests {
-  background-color: #8cc63f !important;
-}
-
-#tabPanel.templates {
-  background-color: #00a6a0 !important;
-}
-
-#tabPanel.storage {
-  background-color: #feb813 !important;
-}
-
-#tabPanel.network {
-  background-color: #7f1c7d !important;
-}
-
-#tabPanel.wok {
-  background-color: #d9182d !important;
-}
-
-#tabPanel.virtualizationTab {
-  background-color: #59930c !important;
-}
-
-#tabPanel.hostTab {
-  background-color: #00578c !important;
-}
-
-#tabPanel.virtualizationSelected {
-  background-color: #8cc63f !important;
-}
-
-#tabPanel.wokTab {
-  background-color: #930c0c !important;
-}
-
-#tabPanel.wokSelected {
-  background-color: #d9182d !important;
-}
-
-@media (min-width: 991px) and (max-width: 992px) {
-  .host-dashboard .container {
-    padding-right: 10px;
-    padding-left: 10px;
-  }
-}
-
 @media (min-width: 1199px) and (max-width: 1200px) {
   .navbar-default.toolbar .navbar-right.tools > li > a {
     margin-left: 50px;
@@ -594,7 +515,7 @@ fieldset[disabled] .btn-group > span > .btn.active {
 }
 
 .menu-flat .btn span.edit-alt {
-  background: transparent url("/images/theme-default/edit-alt.svg") no-repeat 50% 50%;
+  background: transparent url("../images/theme-default/edit-alt.svg") no-repeat 50% 50%;
   background-size: 100%;
   vertical-align: bottom;
   width: 22px;
@@ -906,7 +827,7 @@ fieldset[disabled] .btn-group > span > .btn.active {
 }
 
 .wok-list-loading-icon-inline {
-  background: transparent url("/images/theme-default/spin5.svg") no-repeat 50% 50%;
+  background: transparent url("../images/theme-default/spin5.svg") no-repeat 50% 50%;
   -webkit-animation: spin 3s infinite linear;
   -o-animation: spin 3s infinite linear;
   animation: spin 3s infinite linear;
@@ -1181,7 +1102,7 @@ fieldset[disabled] .btn-group > span > .btn.active {
 }
 
 .wok-loading-icon {
-  background: transparent url("/images/theme-default/spin5.svg") no-repeat 50% 50%;
+  background: transparent url("../images/theme-default/spin5.svg") no-repeat 50% 50%;
   -webkit-animation: spin 3s infinite linear;
   -o-animation: spin 3s infinite linear;
   animation: spin 3s infinite linear;
@@ -1221,7 +1142,7 @@ fieldset[disabled] .btn-group > span > .btn.active {
 }
 
 .wok-mask-loading-icon, .wok-grid-loading-icon, .wok-list-loading-icon {
-  background: transparent url("/images/theme-default/spin5.svg") no-repeat 50% 50%;
+  background: transparent url("../images/theme-default/spin5.svg") no-repeat 50% 50%;
   -webkit-animation: spin 2s infinite linear;
   -o-animation: spin 2s infinite linear;
   animation: spin 2s infinite linear;
@@ -1552,7 +1473,7 @@ input[type=radio].wok-radio + label {
 /*
 * Project Wok
 *
-* Copyright IBM Corp, 2016
+* Copyright IBM Corp, 2015-2016
 *
 * Code derived from Project Kimchi
 *

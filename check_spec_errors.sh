@@ -1,9 +1,9 @@
+#!/bin/bash
+
 #
 # Project Wok
 #
-# Copyright IBM Corp, 2015-2016
-#
-# Code derived from Project Kimchi
+# Copyright IBM Corp, 2016
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -19,18 +19,18 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 
-import cherrypy
+echo "Checking spec guidelines"
 
-from wok.config import get_base_plugin_uri
-from wok.utils import get_enabled_plugins
+# create links
+cp contrib/wok.spec.fedora contrib/wok_fedora.spec
+cp contrib/wok.spec.suse contrib/wok_suse.spec
+
+# run checking
+rpmlint contrib/wok_fedora.spec
+rpmlint contrib/wok_suse.spec
+
+# remove links
+rm contrib/wok_fedora.spec
+rm contrib/wok_suse.spec
 
 
-class PluginsModel(object):
-    def __init__(self, **kargs):
-        pass
-
-    def get_list(self):
-        # Will only return plugins that were loaded correctly by WOK and are
-        # properly configured in cherrypy
-        return [plugin for (plugin, config) in get_enabled_plugins()
-                if get_base_plugin_uri(plugin) in cherrypy.tree.apps.keys()]
