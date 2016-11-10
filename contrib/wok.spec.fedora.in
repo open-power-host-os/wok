@@ -20,6 +20,7 @@ Requires:	python-psutil >= 0.6.0
 Requires:	fontawesome-fonts
 Requires:	open-sans-fonts
 Requires:	logrotate
+Requires:	openssl
 Requires:	policycoreutils
 Requires:	policycoreutils-python
 
@@ -95,9 +96,10 @@ install -Dm 0744 src/selinux/wokd.pp %{buildroot}%{_datadir}/wok/selinux/wokd.pp
 
 %post
 if [ $1 -eq 1 ] ; then
-    /bin/systemctl enable wokd.service >/dev/null 2>&1 || :
     # Initial installation
+    /bin/systemctl enable wokd.service >/dev/null 2>&1 || :
     /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+    openssl req -x509 -newkey rsa:4096 -keyout /etc/wok/wok-key.pem -out /etc/wok/wok-cert.pem -days 365 -nodes -subj "/C=US/CN=wok/O=kimchi-project.org" >/dev/null 2>&1 || :
 
     # Add wokd as default service into public chain of firewalld
     %{_datadir}/wok/utils/wok-firewalld.sh public add wokd
@@ -106,7 +108,6 @@ fi
 semodule -i %{_datadir}/wok/selinux/wokd.pp
 
 %preun
-
 if [ $1 -eq 0 ] ; then
     # Package removal, not upgrade
     /bin/systemctl --no-reload disable wokd.service > /dev/null 2>&1 || :
@@ -116,18 +117,20 @@ if [ $1 -eq 0 ] ; then
     %{_datadir}/wok/utils/wok-firewalld.sh public del wokd
     firewall-cmd --reload >/dev/null 2>&1 || :
 fi
-
 exit 0
 
 
 %postun
 if [ "$1" -ge 1 ] ; then
     /bin/systemctl try-restart wokd.service >/dev/null 2>&1 || :
+else
+    rm /etc/wok/wok-key.pem /etc/wok/wok-cert.pem
 fi
 if [ $1 -eq 0 ]; then
     # Remove the SELinux policy, only when uninstall the package
     semodule -r wokd
 fi
+
 exit 0
 
 %clean
